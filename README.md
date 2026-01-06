@@ -160,5 +160,104 @@ summary = assistant.summarize(text, length="brief", output_parser="clean_summary
 # Structured JSON output
 structured_response = assistant.analyze_structured("Analyze this topic", "English")
 
+## Part 5: Basic Testing
 
+The project includes a comprehensive test suite for prompt templates and functionality.
 
+### Running Tests
+
+```bash
+# Run all tests
+python run_tests.py
+
+# Run specific test file
+python run_tests.py --file tests/test_prompts.py
+
+# Run tests with coverage report
+python run_tests.py --coverage
+
+# Directly with pytest
+pytest tests/ -v
+
+# Run only prompt tests
+pytest tests/test_prompts.py -v
+
+# Run mocked chain tests
+pytest tests/test_chain_mocked.py -v
+
+```
+
+## Test Structure
+```text
+tests/
+├── conftest.py              # Pytest configuration and fixtures
+├── test_prompts.py          # Tests for prompt templates and factory
+├── test_chain_mocked.py     # Mocked tests for chain functionality
+└── test_integration.py      # Integration tests
+```
+
+## Test Requirements
+- Tests run without AWS credentials
+
+- Only test prompt formatting and logic
+
+- Use mocking for AWS/Bedrock dependencies
+
+## Test Coverage
+The test suite covers:
+
+1. **Prompt Factory Tests**
+
+    - Prompt template creation for all tasks
+
+    - Input variable validation
+
+    - Error handling for invalid tasks
+
+    - Prompt formatting with sample inputs
+
+2. **Prompt Selector Tests**
+
+    - get_prompt_by_name() returns correct template
+
+    - Case-insensitive task names
+
+    - Proper error messages for unknown tasks
+
+3. **Integration Tests**
+
+    - Components work together correctly
+
+    - LangChain compatibility
+
+    - Error handling flows
+
+### Writing New Tests
+Follow pytest conventions:
+
+```python
+def test_feature_description():
+    """Test description."""
+    # Arrange
+    factory = PromptFactory()
+    
+    # Act
+    result = factory.get_prompt_template("assistant")
+    
+    # Assert
+    assert isinstance(result, ChatPromptTemplate)
+```
+
+## Mocking AWS Dependencies
+For tests that involve AWS, use mocking:
+
+```python
+from unittest.mock import Mock, patch
+
+@patch('boto3.Session')
+@patch('langchain_aws.ChatBedrock')
+def test_chain_with_mocked_aws(mock_chat, mock_session):
+    # Test chain creation without real AWS calls
+    pass
+
+```
