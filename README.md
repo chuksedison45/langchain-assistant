@@ -66,4 +66,70 @@ results = assistant.batch_chat(conversations)
 
 - Error handling and retries
 
+## Multiple Prompt Templates
+
+The application now supports multiple specialized prompt templates:
+
+### Available Tasks
+
+1. **assistant** - General multilingual assistant
+   ```python
+   assistant.chat("Your message", language="Spanish")
+   ```
+
+2. **summarizer** - Text summarization with length control
+   ```python
+   assistant.summarize(text, length="brief")  # or "medium", "detailed"
+   ```
+
+3. **translator** - Text translation with context
+   ```python
+   assistant.translate(text, source_language="English", target_language="French", context="Formal")
+   ```
+
+4. **coder** - Code generation and explanation
+   ```python
+   assistant.code(request, language="Python", task_type="implementation")
+   ```
+
+5. **analyst** - Data analysis and insights
+   ```python
+   assistant.analyze(data, question, focus="business", audience="executives")
+   ```
+
+### Usage Examples
+
+```bash
+# Run the multiple prompt demo
+python -c "from src.main import demo_multiple_tasks; demo_multiple_tasks()"
+
+# Run comprehensive tests
+python scripts/test_prompts.py
+
+# See example usage
+python examples/example_usage.py
+```
+
+### Switching Between Tasks
+
+```python
+from src.main import LangChainAssistant
+
+assistant = LangChainAssistant()
+
+# Switch tasks
+assistant.set_task("summarizer")
+assistant.set_task("translator", target_language="German")
+
+# Get task information
+info = assistant.get_task_info("coder")
+print(f"Required inputs: {info['required_inputs']}")
+```
+
+## Testing
+
+Test all prompt templates:
+```bash
+python scripts/test_prompts.py
+```
 
