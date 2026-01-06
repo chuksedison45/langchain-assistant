@@ -187,7 +187,7 @@ class TestPromptSelector:
 
     def test_prompt_selector_with_kwargs(self):
         """Test prompt selector passes kwargs to prompt creators."""
-        # Test with summarizer - it should accept length parameter in format, 
+        # Test with summarizer - it should accept length parameter in format,
         # not in get_prompt_template
         prompt = self.factory.get_prompt_template("summarizer")
 
