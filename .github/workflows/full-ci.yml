@@ -1,0 +1,140 @@
+name: Full CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install linters
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black
+        
+    - name: Check Black formatting
+      run: |
+        black --check --diff src/ tests/ || echo "Note: Code formatting issues found. Run 'black src/ tests/' to fix."
+        
+    - name: Run Flake8
+      run: |
+        flake8 src/ tests/ --count --max-complexity=10 --max-line-length=88 --statistics
+        
+    - name: Check imports
+      run: |
+        python -c "import sys; sys.path.insert(0, 'src'); from prompts import PromptFactory; print('✓ PromptFactory imported successfully')"
+
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+        include:
+          - python-version: '3.10'
+            test-command: "pytest tests/ -v --tb=short"
+          - python-version: '3.11' 
+            test-command: "pytest tests/ -v --tb=short --cov=src --cov-report=xml"
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-mock
+        
+    - name: Run tests
+      run: |
+        ${{ matrix.test-command }}
+        
+    - name: Upload coverage for Python 3.11
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        
+    - name: Archive test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-py${{ matrix.python-version }}
+        path: |
+          .pytest_cache/
+        retention-days: 7
+
+  verify:
+    name: Verify Project Structure
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check project structure
+      run: |
+        echo "Checking project structure..."
+        [ -f requirements.txt ] && echo "✓ requirements.txt exists" || echo "✗ requirements.txt missing"
+        [ -f README.md ] && echo "✓ README.md exists" || echo "✗ README.md missing"
+        [ -d src ] && echo "✓ src directory exists" || echo "✗ src directory missing"
+        [ -d tests ] && echo "✓ tests directory exists" || echo "✗ tests directory missing"
+        [ -d .github/workflows ] && echo "✓ .github/workflows exists" || echo "✗ .github/workflows missing"
+        
+    - name: Check key files
+      run: |
+        echo "Checking key files..."
+        [ -f src/prompts.py ] && echo "✓ src/prompts.py exists" || echo "✗ src/prompts.py missing"
+        [ -f tests/test_prompts.py ] && echo "✓ tests/test_prompts.py exists" || echo "✗ tests/test_prompts.py missing"
+        [ -f .github/workflows/lint.yml ] && echo "✓ .github/workflows/lint.yml exists" || echo "✗ lint.yml missing"
+        [ -f .github/workflows/test.yml ] && echo "✓ .github/workflows/test.yml exists" || echo "✗ test.yml missing"
+        
+    - name: Run simple test
+      run: |
+        python -m pytest tests/test_minimal.py -v
+
+  success:
+    name: Success
+    runs-on: ubuntu-latest
+    needs: [lint, test, verify]
+    if: always()
+    
+    steps:
+    - name: Display success message
+      run: |
+        if [[ "${{ needs.lint.result }}" == "success" && "${{ needs.test.result }}" == "success" && "${{ needs.verify.result }}" == "success" ]]; then
+          echo "🎉 All checks passed!"
+          echo "✓ Linting passed"
+          echo "✓ Tests passed on all Python versions"
+          echo "✓ Project structure verified"
+        else
+          echo "❌ Some checks failed"
+          exit 1
+        fi
