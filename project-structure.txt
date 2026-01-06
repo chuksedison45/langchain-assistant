@@ -1,0 +1,16 @@
+langchain-assistant/
+├── .git/
+├── .gitignore
+├── .env
+├── README.md
+├── requirements.txt
+├── src/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── config.py
+│   └── test_setup.py
+├── tests/
+│   ├── __init__.py
+│   └── test_basic.py
+├── docs/
+└── venv/
