@@ -1,6 +1,6 @@
-from typing import Optional, Dict, Any, Literal, Union
+from typing import Optional, Dict, Any, Literal
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnableSequence, RunnablePassthrough
+from langchain_core.runnables import RunnableSequence
 from langchain_core.output_parsers import StrOutputParser
 
 from src.bedrock_client import BedrockClient
@@ -8,7 +8,7 @@ from src.config import config
 from src.prompts import PromptFactory
 
 class AssistantChain:
-    """Build and manage LangChain chains for various tasks."""
+    """Build and manage LangChain chains for various tasks with output parsing."""
     
     def __init__(self, bedrock_client: Optional[BedrockClient] = None):
         """Initialize with optional custom Bedrock client."""
@@ -25,7 +25,7 @@ class AssistantChain:
         **prompt_kwargs
     ) -> RunnableSequence:
         """
-        Create a LangChain chain for a specific task using LCEL.
+        Create a LangChain chain for a specific task using LCEL with output parsing.
         
         Args:
             task: The task name (assistant, summarizer, translator, etc.)
@@ -35,7 +35,7 @@ class AssistantChain:
             **prompt_kwargs: Additional parameters for the prompt
             
         Returns:
-            RunnableSequence chain
+            RunnableSequence chain with output parsing
         """
         # Validate task
         if task not in self.prompt_factory.SUPPORTED_TASKS:
@@ -54,43 +54,33 @@ class AssistantChain:
         # Get appropriate prompt template
         prompt = self.prompt_factory.get_prompt_template(task, **prompt_kwargs)
         
-        # Build chain using LCEL
-        chain = prompt | model | StrOutputParser()
+        # Use StrOutputParser for clean text output
+        output_parser = StrOutputParser()
+        
+        # Build chain using LCEL: prompt → model → output parser
+        chain = prompt | model | output_parser
         
         task_description = self.prompt_factory.SUPPORTED_TASKS[task]
         print(f"✓ Chain created for task: {task} ({task_description})")
+        print(f"  Output parser: StrOutputParser")
         
         return chain
     
-    def create_dynamic_chain(
+    def create_chat_chain(self, **kwargs) -> RunnableSequence:
+        """Create a chain for chat conversations with output parsing."""
+        return self.create_chain(task="assistant", **kwargs)
+    
+    def create_summarizer_chain(
         self,
-        task_description: str,
-        custom_instructions: str = "",
-        examples: list = None,
+        length: Literal["brief", "medium", "detailed"] = "medium",
         **kwargs
     ) -> RunnableSequence:
-        """Create a chain with a dynamically generated prompt."""
-        
-        # Create model
-        model = self.client.create_chat_model(
-            model_id=kwargs.get('model_id'),
-            temperature=kwargs.get('temperature'),
-            max_tokens=kwargs.get('max_tokens')
+        """Create a specialized summarizer chain with output parsing."""
+        return self.create_chain(
+            task="summarizer",
+            length=length,
+            **kwargs
         )
-        
-        # Create dynamic prompt
-        prompt = self.prompt_factory.create_dynamic_prompt(
-            task_description,
-            custom_instructions,
-            examples
-        )
-        
-        # Build chain
-        chain = prompt | model | StrOutputParser()
-        
-        print("✓ Dynamic chain created with custom prompt")
-        
-        return chain
     
     def get_chain(
         self,
@@ -115,51 +105,3 @@ class AssistantChain:
             self.chain_cache[key] = self.create_chain(task, **kwargs)
         
         return self.chain_cache[key]
-    
-    def list_available_chains(self):
-        """List all available chain types."""
-        return self.prompt_factory.list_tasks()
-    
-    def create_summarizer_chain(
-        self,
-        length: Literal["brief", "medium", "detailed"] = "medium",
-        **kwargs
-    ) -> RunnableSequence:
-        """Create a specialized summarizer chain."""
-        return self.create_chain(
-            task="summarizer",
-            length=length,
-            **kwargs
-        )
-    
-    def create_translator_chain(
-        self,
-        source_language: str = "auto",
-        target_language: str = "English",
-        context: str = "",
-        **kwargs
-    ) -> RunnableSequence:
-        """Create a specialized translator chain."""
-        return self.create_chain(
-            task="translator",
-            source_language=source_language,
-            target_language=target_language,
-            context=context,
-            **kwargs
-        )
-    
-    def create_coder_chain(
-        self,
-        language: str = "Python",
-        task_type: str = "implementation",
-        requirements: str = "",
-        **kwargs
-    ) -> RunnableSequence:
-        """Create a specialized coder chain."""
-        return self.create_chain(
-            task="coder",
-            language=language,
-            task_type=task_type,
-            requirements=requirements,
-            **kwargs
-        )

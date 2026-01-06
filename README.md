@@ -133,3 +133,32 @@ Test all prompt templates:
 python scripts/test_prompts.py
 ```
 
+## Part 4: Output Parsing
+
+The application now includes advanced output parsing for clean, structured responses.
+
+### Output Parsers Available
+
+1. **clean_text** - Clean string output with formatting
+2. **clean_summary** - Formatted summaries with proper structure
+3. **json** - JSON output for structured data
+4. **structured** - Pydantic model-based structured output
+
+### Usage Examples
+
+```python
+from src.main import LangChainAssistant
+
+assistant = LangChainAssistant()
+
+# Basic chat with clean text output
+response = assistant.chat("Your question", "English", output_parser="clean_text")
+
+# Summarizer with clean summary output
+summary = assistant.summarize(text, length="brief", output_parser="clean_summary")
+
+# Structured JSON output
+structured_response = assistant.analyze_structured("Analyze this topic", "English")
+
+
+
