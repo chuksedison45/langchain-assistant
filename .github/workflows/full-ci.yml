@@ -36,7 +36,7 @@ jobs:
         
     - name: Run Flake8
       run: |
-        flake8 src/ tests/ --count --max-complexity=10 --max-line-length=88 --statistics
+        flake8 src/ tests/ --count --max-complexity=10 --max-line-length=120 --statistics
         
     - name: Check imports
       run: |

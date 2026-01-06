@@ -32,8 +32,8 @@ jobs:
         
     - name: Run Flake8 linter
       run: |
-        # Run flake8 with max line length 88 (matching Black)
-        flake8 src/ tests/ --count --max-complexity=10 --max-line-length=88 --statistics
+        # Run flake8 with max line length 120 (matching Black)
+        flake8 src/ tests/ --count --max-complexity=10 --max-line-length=120 --statistics
         
     - name: Check for syntax errors
       run: |

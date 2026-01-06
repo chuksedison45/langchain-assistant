@@ -117,7 +117,8 @@ class TestPromptFactory:
 
     def test_get_task_input_variables(self):
         """
-        Test that get_task_input_variables returns correct input variables for each task.
+        Test that get_task_input_variables returns correct input variables for each
+        task.
         """
         test_cases = [
             ("assistant", ["language", "message"]),

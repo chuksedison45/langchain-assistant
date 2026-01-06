@@ -185,7 +185,8 @@ Additional requirements: {requirements}"""
         """Create a data analysis prompt template."""
         system_template = """You are a data analyst and insights generator.
 
-Your task is to analyze the provided data or information and extract meaningful insights.
+Your task is to analyze the provided data or information and extract
+meaningful insights.
 
 Analysis focus: {focus}
 Audience: {audience}

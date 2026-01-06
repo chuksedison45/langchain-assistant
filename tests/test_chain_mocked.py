@@ -76,7 +76,8 @@ class TestAssistantChainMocked:
         """Test create_chain with invalid task raises ValueError."""
         # Mock the prompt factory to raise ValueError
         self.mock_factory.get_prompt_template.side_effect = ValueError(
-            "Task 'invalid_task' not supported. Available tasks: ['assistant', 'summarizer']"
+            """Task 'invalid_task' not supported. Available tasks:
+              ['assistant', 'summarizer']"""
         )
 
         with pytest.raises(ValueError) as excinfo:
@@ -84,7 +85,8 @@ class TestAssistantChainMocked:
 
         # Check error message contains expected text
         error_msg = str(excinfo.value)
-        # The actual error message is: "Task 'invalid_task' not supported. Available tasks: ['assistant', 'summarizer']"
+        # The actual error message is: "Task 'invalid_task' not supported.
+        # Available tasks: ['assistant', 'summarizer']"
         # So we check for "not supported" instead of "Invalid"
         assert "not supported" in error_msg.lower()
 
@@ -185,7 +187,8 @@ class TestPromptSelector:
 
     def test_prompt_selector_with_kwargs(self):
         """Test prompt selector passes kwargs to prompt creators."""
-        # Test with summarizer - it should accept length parameter in format, not in get_prompt_template
+        # Test with summarizer - it should accept length parameter in format, 
+        # not in get_prompt_template
         prompt = self.factory.get_prompt_template("summarizer")
 
         # Format to verify it works with length parameter
