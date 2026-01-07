@@ -5,6 +5,9 @@ from src.chain import AssistantChain
 from src.config import config
 from src.bedrock_client import BedrockClient
 from src.prompts import PromptFactory
+from src.chains import AdvancedChainBuilder, TranslationChain, CodeReviewChain
+from src.memory import ConversationBuffer
+from src.tools import ToolRegistry
 
 
 class LangChainAssistant:
@@ -16,6 +19,11 @@ class LangChainAssistant:
         self.client = BedrockClient()
         self.chain_builder = AssistantChain(self.client)
         self.prompt_factory = PromptFactory()
+        self.advanced_builder = AdvancedChainBuilder(self.client)
+        self.translation_chain = TranslationChain(self.client)
+        self.code_review_chain = CodeReviewChain(self.client)
+        self.tool_registry = ToolRegistry()
+        self.memory = ConversationBuffer()
 
         # Current chain and task
         self.current_task = "assistant"
